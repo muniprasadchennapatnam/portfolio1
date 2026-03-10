@@ -257,8 +257,8 @@ export default function Portfolio() {
             background: "linear-gradient(135deg, #e8c547, #f0d060)",
             display: "flex", alignItems: "center", justifyContent: "center",
             fontFamily: "'JetBrains Mono', monospace", fontSize: 12, fontWeight: 700, color: "#08080a"
-          }}>YN</div>
-          <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 15, color: "#e8e4d8" }}>Your Name</span>
+          }}>CM</div>
+          <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 15, color: "#e8e4d8" }}>CHENNAPATANAM MUNIPRASAD</span>
         </div>
 
         <div style={{ display: "flex", gap: 6 }}>
