@@ -46,24 +46,33 @@ const PROJECTS = [
   },
 ];
 
-// const EXPERIENCE = [
-//   { year: "2023 — Now", role: "Full Stack Developer", company: "Freelance", desc: "Building end-to-end web applications for clients using MERN stack. Delivered 3 production projects including e-commerce and data management platforms." },
-//   { year: "2022 — 2023", role: "React Developer Intern", company: "Tech Startup", desc: "Developed reusable UI components, implemented authentication flows, and integrated REST APIs in a collaborative agile environment." },
-// ];
+// Custom hook to track window width
+function useWindowWidth() {
+  const [width, setWidth] = useState(typeof window !== "undefined" ? window.innerWidth : 1200);
+  useEffect(() => {
+    const handler = () => setWidth(window.innerWidth);
+    window.addEventListener("resize", handler);
+    return () => window.removeEventListener("resize", handler);
+  }, []);
+  return width;
+}
 
 // Animated skill bar
 function SkillBar({ skill, visible }) {
+  const [hovered, setHovered] = useState(false);
   return (
-    <div style={{
-      background: "#111113",
-      border: "1px solid #222228",
-      borderRadius: 12,
-      padding: "20px 22px",
-      transition: "border-color 0.3s, transform 0.3s",
-      cursor: "default",
-    }}
-      onMouseEnter={e => { e.currentTarget.style.borderColor = skill.color || "#e8c547"; e.currentTarget.style.transform = "translateY(-3px)"; }}
-      onMouseLeave={e => { e.currentTarget.style.borderColor = "#222228"; e.currentTarget.style.transform = "translateY(0)"; }}
+    <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        background: "#111113",
+        border: `1px solid ${hovered ? "#e8c547" : "#222228"}`,
+        borderRadius: 12,
+        padding: "20px 22px",
+        transition: "border-color 0.3s, transform 0.3s",
+        cursor: "default",
+        transform: hovered ? "translateY(-3px)" : "translateY(0)",
+      }}
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -87,7 +96,7 @@ function SkillBar({ skill, visible }) {
 }
 
 // Project card
-function ProjectCard({ project, index }) {
+function ProjectCard({ project }) {
   const [hovered, setHovered] = useState(false);
   return (
     <div
@@ -106,7 +115,6 @@ function ProjectCard({ project, index }) {
         cursor: "default",
       }}
     >
-      {/* Glow bg */}
       <div style={{
         position: "absolute", top: -60, right: -60,
         width: 200, height: 200,
@@ -123,24 +131,24 @@ function ProjectCard({ project, index }) {
             background: `${project.color}18`,
             border: `1px solid ${project.color}40`,
             display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: 20,
+            fontSize: 20, flexShrink: 0,
           }}>{project.icon}</div>
           <div>
             <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: project.color, letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: 2 }}>Project {project.id}</div>
-            <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 20, fontWeight: 700, color: "#e8e4d8", letterSpacing: "-0.02em" }}>{project.title}</div>
+            <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 18, fontWeight: 700, color: "#e8e4d8", letterSpacing: "-0.02em" }}>{project.title}</div>
           </div>
         </div>
         <div style={{
           fontSize: 18, color: hovered ? project.color : "#333",
           transition: "all 0.3s",
           transform: hovered ? "translate(3px,-3px)" : "translate(0,0)",
+          flexShrink: 0,
         }}>↗</div>
       </div>
 
       <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 12, color: project.color, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 10, fontWeight: 600 }}>{project.subtitle}</div>
       <p style={{ fontFamily: "'Syne', sans-serif", fontSize: 14, color: "#888", lineHeight: 1.75, marginBottom: 24 }}>{project.desc}</p>
 
-      {/* Highlights */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 24 }}>
         {project.highlights.map(h => (
           <div key={h} style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -150,25 +158,33 @@ function ProjectCard({ project, index }) {
         ))}
       </div>
 
-      {/* Tags */}
       <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
         {project.tags.map(t => (
-          <span key={t} style={{
-            fontFamily: "'JetBrains Mono', monospace",
-            fontSize: 10, letterSpacing: "0.1em",
-            textTransform: "uppercase",
-            color: "#555",
-            border: "1px solid #222228",
-            borderRadius: 6,
-            padding: "3px 9px",
-            transition: "border-color 0.3s, color 0.3s",
-          }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = project.color; e.currentTarget.style.color = project.color; }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = "#222228"; e.currentTarget.style.color = "#555"; }}
-          >{t}</span>
+          <TagChip key={t} label={t} color={project.color} />
         ))}
       </div>
     </div>
+  );
+}
+
+function TagChip({ label, color }) {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <span
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        fontFamily: "'JetBrains Mono', monospace",
+        fontSize: 10, letterSpacing: "0.1em",
+        textTransform: "uppercase",
+        color: hovered ? color : "#555",
+        border: `1px solid ${hovered ? color : "#222228"}`,
+        borderRadius: 6,
+        padding: "3px 9px",
+        transition: "border-color 0.3s, color 0.3s",
+        cursor: "default",
+      }}
+    >{label}</span>
   );
 }
 
@@ -177,22 +193,20 @@ function useReveal() {
   const ref = useRef(null);
   const [visible, setVisible] = useState(false);
   useEffect(() => {
-    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) setVisible(true); }, { threshold: 0.12 });
+    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) setVisible(true); }, { threshold: 0.1 });
     if (ref.current) obs.observe(ref.current);
     return () => obs.disconnect();
   }, []);
   return [ref, visible];
 }
 
-// Section wrapper with reveal
-function Reveal({ children, delay = 0, style = {} }) {
+function Reveal({ children, delay = 0 }) {
   const [ref, visible] = useReveal();
   return (
     <div ref={ref} style={{
       opacity: visible ? 1 : 0,
       transform: visible ? "translateY(0)" : "translateY(40px)",
       transition: `opacity 0.8s ${delay}s ease, transform 0.8s ${delay}s ease`,
-      ...style,
     }}>
       {children}
     </div>
@@ -200,11 +214,13 @@ function Reveal({ children, delay = 0, style = {} }) {
 }
 
 export default function Portfolio() {
-  const [activeSection, setActiveSection] = useState("About");
   const [skillsVisible, setSkillsVisible] = useState(false);
-  const skillsRef = useRef(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const skillsRef = useRef(null);
+  const iw = useWindowWidth();
+  const isMobile = iw <= 768;
+  const isSmall = iw <= 480;
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 40);
@@ -217,6 +233,14 @@ export default function Portfolio() {
     if (skillsRef.current) obs.observe(skillsRef.current);
     return () => obs.disconnect();
   }, []);
+
+  // Close menu on scroll
+  useEffect(() => {
+    if (menuOpen) {
+      const close = () => setMenuOpen(false);
+      window.addEventListener("scroll", close, { once: true });
+    }
+  }, [menuOpen]);
 
   const scrollTo = (id) => {
     document.getElementById(id.toLowerCase())?.scrollIntoView({ behavior: "smooth" });
@@ -235,84 +259,136 @@ export default function Portfolio() {
         ::selection { background: #e8c54730; }
         @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-16px)} }
         @keyframes pulse { 0%,100%{opacity:0.6} 50%{opacity:1} }
-        @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
         @keyframes marquee { from{transform:translateX(0)} to{transform:translateX(-50%)} }
-        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+        @keyframes fadeUpIn { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+        @keyframes slideDown { from{opacity:0;transform:translateY(-10px)} to{opacity:1;transform:translateY(0)} }
       `}</style>
 
-      {/* NAV */}
+      {/* ── NAV ── */}
       <nav style={{
         position: "fixed", top: 0, left: 0, right: 0, zIndex: 100,
-        padding: "0 40px",
-        height: 64,
+        padding: isMobile ? "0 20px" : "0 40px",
+        height: isMobile ? 56 : 64,
         display: "flex", alignItems: "center", justifyContent: "space-between",
-        background: scrolled ? "rgba(8,8,10,0.92)" : "transparent",
+        background: scrolled ? "rgba(8,8,10,0.95)" : "transparent",
         backdropFilter: scrolled ? "blur(20px)" : "none",
         borderBottom: scrolled ? "1px solid #1a1a1f" : "none",
         transition: "all 0.4s ease",
       }}>
+        {/* Logo */}
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <div style={{
             width: 32, height: 32, borderRadius: 8,
             background: "linear-gradient(135deg, #e8c547, #f0d060)",
             display: "flex", alignItems: "center", justifyContent: "center",
-            fontFamily: "'JetBrains Mono', monospace", fontSize: 12, fontWeight: 700, color: "#08080a"
+            fontFamily: "'JetBrains Mono', monospace", fontSize: 12, fontWeight: 700, color: "#08080a",
+            flexShrink: 0,
           }}>CM</div>
-          <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 15, color: "#e8e4d8" }}>CHENNAPATANAM MUNIPRASAD</span>
+          <span style={{
+            fontFamily: "'Syne', sans-serif", fontWeight: 700,
+            fontSize: isSmall ? 11 : isMobile ? 13 : 15,
+            color: "#e8e4d8",
+            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+            maxWidth: isSmall ? 160 : 240,
+          }}>CHENNAPATNAM MUNIPRASAD</span>
         </div>
 
-        <div style={{ display: "flex", gap: 6 }}>
+        {/* Desktop nav links */}
+        {!isMobile && (
+          <div style={{ display: "flex", gap: 6 }}>
+            {NAV_LINKS.map(link => (
+              <NavBtn key={link} label={link} onClick={() => scrollTo(link)} />
+            ))}
+          </div>
+        )}
+
+        {/* Mobile hamburger */}
+        {isMobile && (
+          <button
+            onClick={() => setMenuOpen(o => !o)}
+            style={{
+              background: "none", border: "1px solid #222228", borderRadius: 8,
+              cursor: "pointer", padding: "8px 10px",
+              display: "flex", flexDirection: "column", gap: 5,
+              transition: "border-color 0.3s",
+            }}
+            aria-label="Toggle menu"
+          >
+            <span style={{ display: "block", width: 20, height: 2, background: menuOpen ? "#e8c547" : "#888", borderRadius: 2, transition: "all 0.3s", transform: menuOpen ? "translateY(7px) rotate(45deg)" : "none" }} />
+            <span style={{ display: "block", width: 20, height: 2, background: menuOpen ? "#e8c547" : "#888", borderRadius: 2, transition: "all 0.3s", opacity: menuOpen ? 0 : 1 }} />
+            <span style={{ display: "block", width: 20, height: 2, background: menuOpen ? "#e8c547" : "#888", borderRadius: 2, transition: "all 0.3s", transform: menuOpen ? "translateY(-7px) rotate(-45deg)" : "none" }} />
+          </button>
+        )}
+      </nav>
+
+      {/* Mobile Dropdown Menu */}
+      {isMobile && menuOpen && (
+        <div style={{
+          position: "fixed", top: 56, left: 0, right: 0, zIndex: 99,
+          background: "rgba(8,8,10,0.98)", backdropFilter: "blur(20px)",
+          borderBottom: "1px solid #1a1a1f",
+          padding: "12px 20px 20px",
+          animation: "slideDown 0.25s ease forwards",
+        }}>
           {NAV_LINKS.map(link => (
-            <button key={link} onClick={() => scrollTo(link)}
-              style={{
-                background: "none", border: "none", cursor: "pointer",
-                fontFamily: "'JetBrains Mono', monospace", fontSize: 11,
-                letterSpacing: "0.12em", textTransform: "uppercase",
-                color: activeSection === link ? "#e8c547" : "#666",
-                padding: "6px 14px", borderRadius: 6,
-                transition: "color 0.3s, background 0.3s",
-              }}
-              onMouseEnter={e => e.currentTarget.style.background = "#ffffff08"}
-              onMouseLeave={e => e.currentTarget.style.background = "none"}
+            <button key={link} onClick={() => scrollTo(link)} style={{
+              display: "block", width: "100%", textAlign: "left",
+              background: "none", border: "none", cursor: "pointer",
+              fontFamily: "'JetBrains Mono', monospace", fontSize: 13,
+              letterSpacing: "0.12em", textTransform: "uppercase",
+              color: "#888", padding: "14px 12px", borderRadius: 8,
+              transition: "color 0.2s, background 0.2s",
+            }}
+              onMouseEnter={e => { e.currentTarget.style.background = "#ffffff08"; e.currentTarget.style.color = "#e8c547"; }}
+              onMouseLeave={e => { e.currentTarget.style.background = "none"; e.currentTarget.style.color = "#888"; }}
             >{link}</button>
           ))}
         </div>
-      </nav>
+      )}
 
-      {/* HERO */}
+      {/* ── HERO ── */}
       <section id="about" style={{
         minHeight: "100vh", display: "flex", alignItems: "center",
-        padding: "100px 40px 60px",
+        padding: isMobile ? `${isMobile ? 80 : 100}px 20px 60px` : "100px 40px 60px",
         maxWidth: 1100, margin: "0 auto",
         position: "relative",
       }}>
-        {/* Decorative grid bg */}
         <div style={{
           position: "fixed", inset: 0, pointerEvents: "none",
           backgroundImage: "linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px)",
-          backgroundSize: "60px 60px",
-          zIndex: 0,
+          backgroundSize: "60px 60px", zIndex: 0,
         }} />
 
-        <div style={{ position: "relative", zIndex: 1, width: "100%", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 80, alignItems: "center" }}>
-          <div>
-            {/* Status badge */}
+        <div style={{
+          position: "relative", zIndex: 1, width: "100%",
+          display: "grid",
+          gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
+          gap: isMobile ? 40 : 80,
+          alignItems: "center",
+        }}>
+          {/* Avatar visual — shown first on mobile */}
+          {isMobile && (
+            <div style={{ display: "flex", justifyContent: "center", opacity: 0, animation: "fadeIn 1s 0.3s forwards" }}>
+              <AvatarCard isSmall={isSmall} />
+            </div>
+          )}
+
+          {/* Text content */}
+          <div style={{ textAlign: isMobile ? "center" : "left" }}>
             <div style={{
               display: "inline-flex", alignItems: "center", gap: 8,
               background: "#0d1a0d", border: "1px solid #1a3a1a",
-              borderRadius: 20, padding: "6px 14px", marginBottom: 32,
-              animation: "fadeIn 0.6s ease forwards",
+              borderRadius: 20, padding: "6px 14px", marginBottom: 28,
             }}>
               <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#4ade80", animation: "pulse 2s infinite" }} />
               <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: "#4ade80", letterSpacing: "0.1em" }}>Available for work</span>
             </div>
 
             <h1 style={{
-              fontSize: "clamp(48px, 7vw, 80px)", fontWeight: 800,
-              lineHeight: 1.0, letterSpacing: "-0.04em",
-              marginBottom: 24,
-              opacity: 0,
-              animation: "fadeUpIn 0.8s 0.2s forwards",
+              fontSize: isSmall ? "clamp(34px,10vw,46px)" : isMobile ? "clamp(38px,9vw,56px)" : "clamp(48px,7vw,80px)",
+              fontWeight: 800, lineHeight: 1.05, letterSpacing: "-0.04em",
+              marginBottom: 20, opacity: 0, animation: "fadeUpIn 0.8s 0.2s forwards",
             }}>
               <span style={{ color: "#e8e4d8" }}>Full Stack</span><br />
               <span style={{ color: "#e8c547" }}>Developer</span><br />
@@ -320,107 +396,36 @@ export default function Portfolio() {
             </h1>
 
             <p style={{
-              fontSize: 16, color: "#666", lineHeight: 1.8, maxWidth: 420, marginBottom: 40,
+              fontSize: isMobile ? 14 : 16, color: "#666", lineHeight: 1.8,
+              maxWidth: isMobile ? "100%" : 420,
+              margin: isMobile ? "0 auto 32px" : "0 0 40px",
               opacity: 0, animation: "fadeUpIn 0.8s 0.4s forwards",
             }}>
               I build fast, scalable web applications using the <span style={{ color: "#e8c547" }}>MERN stack</span>. From database to UI — I own the full product lifecycle.
             </p>
 
-            <div style={{ display: "flex", gap: 12, flexWrap: "wrap", opacity: 0, animation: "fadeUpIn 0.8s 0.6s forwards" }}>
-              <button onClick={() => scrollTo("Projects")} style={{
-                background: "#e8c547", color: "#08080a",
-                border: "none", borderRadius: 8,
-                fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 13,
-                letterSpacing: "0.05em", padding: "13px 28px",
-                cursor: "pointer", transition: "all 0.3s",
-              }}
-                onMouseEnter={e => { e.currentTarget.style.background = "#f0d060"; e.currentTarget.style.transform = "translateY(-2px)"; }}
-                onMouseLeave={e => { e.currentTarget.style.background = "#e8c547"; e.currentTarget.style.transform = "translateY(0)"; }}
-              >View Projects ↗</button>
-              <button onClick={() => scrollTo("Contact")} style={{
-                background: "none", color: "#888",
-                border: "1px solid #222228", borderRadius: 8,
-                fontFamily: "'Syne', sans-serif", fontWeight: 600, fontSize: 13,
-                padding: "13px 28px", cursor: "pointer", transition: "all 0.3s",
-              }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = "#e8c547"; e.currentTarget.style.color = "#e8c547"; }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = "#222228"; e.currentTarget.style.color = "#888"; }}
-              >Contact Me</button>
+            <div style={{
+              display: "flex", gap: 12,
+              flexDirection: isSmall ? "column" : "row",
+              flexWrap: "wrap",
+              justifyContent: isMobile ? "center" : "flex-start",
+              opacity: 0, animation: "fadeUpIn 0.8s 0.6s forwards",
+            }}>
+              <HeroBtn primary onClick={() => scrollTo("Projects")} fullWidth={isSmall}>View Projects ↗</HeroBtn>
+              <HeroBtn onClick={() => scrollTo("Contact")} fullWidth={isSmall}>Contact Me</HeroBtn>
             </div>
           </div>
 
-          {/* Hero visual */}
-          <div style={{ display: "flex", justifyContent: "center", alignItems: "center", opacity: 0, animation: "fadeIn 1s 0.5s forwards" }}>
-            <div style={{ position: "relative" }}>
-              {/* Main avatar card */}
-              <div style={{
-                width: 300, height: 360,
-                background: "linear-gradient(145deg, #111113, #0d0d0f)",
-                border: "1px solid #222228",
-                borderRadius: 20,
-                display: "flex", flexDirection: "column",
-                alignItems: "center", justifyContent: "center",
-                position: "relative", overflow: "hidden",
-                animation: "float 5s ease-in-out infinite",
-              }}>
-                <div style={{
-                  position: "absolute", inset: 0,
-                  background: "radial-gradient(circle at 50% 30%, rgba(232,197,71,0.08), transparent 60%)",
-                }} />
-                <div style={{
-                  width: 100, height: 100, borderRadius: "50%",
-                  background: "linear-gradient(135deg, #e8c547, #f0d060)",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 40, fontWeight: 800, color: "#08080a",
-                  fontFamily: "'Syne', sans-serif",
-                  marginBottom: 20, position: "relative", zIndex: 1,
-                }}>CM</div>
-                <div style={{ fontWeight: 700, fontSize: 20, color: "#e8e4d8", zIndex: 1, textAlign:"center" }}>CHENNAPATNAM MUNIPRASAD</div>
-                <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: "#e8c547", letterSpacing: "0.12em", marginTop: 6, zIndex: 1 }}>MERN STACK DEV</div>
-                <div style={{ display: "flex", gap: 12, marginTop: 24, zIndex: 1 }}>
-                  {["⚛️", "🟢", "🍃", "🐍"].map((icon, i) => (
-                    <div key={i} style={{
-                      width: 36, height: 36, borderRadius: 8,
-                      background: "#0a0a0c", border: "1px solid #222228",
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      fontSize: 16,
-                    }}>{icon}</div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Floating stat cards */}
-              {[
-                { label: "Projects", value: "3+", top: 30, right: -70, color: "#e8c547" },
-                { label: "Stack", value: "MERN", bottom: 60, left: -70, color: "#5ec4a8" },
-              ].map(card => (
-                <div key={card.label} style={{
-                  position: "absolute",
-                  top: card.top, right: card.right,
-                  bottom: card.bottom, left: card.left,
-                  background: "#111113",
-                  border: `1px solid ${card.color}40`,
-                  borderRadius: 12,
-                  padding: "12px 16px",
-                  minWidth: 80,
-                  animation: "float 4s ease-in-out infinite",
-                  animationDelay: `${Math.random()}s`,
-                }}>
-                  <div style={{ fontWeight: 800, fontSize: 22, color: card.color, fontFamily: "'Syne', sans-serif" }}>{card.value}</div>
-                  <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: "#555", letterSpacing: "0.1em", textTransform: "uppercase" }}>{card.label}</div>
-                </div>
-              ))}
+          {/* Desktop avatar */}
+          {!isMobile && (
+            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", opacity: 0, animation: "fadeIn 1s 0.5s forwards" }}>
+              <AvatarCard isSmall={false} />
             </div>
-          </div>
+          )}
         </div>
-
-        <style>{`
-          @keyframes fadeUpIn { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
-          @keyframes fadeIn { from{opacity:0} to{opacity:1} }
-        `}</style>
       </section>
 
-      {/* MARQUEE */}
+      {/* ── MARQUEE ── */}
       <div style={{ borderTop: "1px solid #1a1a1f", borderBottom: "1px solid #1a1a1f", background: "#0d0d0f", padding: "16px 0", overflow: "hidden" }}>
         <div style={{ display: "flex", gap: 48, animation: "marquee 18s linear infinite", whiteSpace: "nowrap" }}>
           {[...Array(2)].flatMap(() =>
@@ -433,16 +438,15 @@ export default function Portfolio() {
         </div>
       </div>
 
-      {/* SKILLS */}
-      <section id="skills" style={{ padding: "100px 40px", maxWidth: 1100, margin: "0 auto" }} ref={skillsRef}>
+      {/* ── SKILLS ── */}
+      <section id="skills" style={{ padding: isMobile ? "70px 20px" : "100px 40px", maxWidth: 1100, margin: "0 auto" }} ref={skillsRef}>
         <Reveal>
           <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, letterSpacing: "0.25em", color: "#e8c547", textTransform: "uppercase", marginBottom: 12 }}>02 — Skills</div>
-          <h2 style={{ fontSize: "clamp(32px, 4vw, 52px)", fontWeight: 800, letterSpacing: "-0.03em", marginBottom: 60, color: "#e8e4d8" }}>
+          <h2 style={{ fontSize: "clamp(28px,5vw,52px)", fontWeight: 800, letterSpacing: "-0.03em", marginBottom: 40, color: "#e8e4d8" }}>
             Tech I work <span style={{ color: "#e8c547", fontStyle: "italic" }}>with</span>
           </h2>
         </Reveal>
-
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 12 }}>
+        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fill, minmax(240px, 1fr))", gap: 12 }}>
           {SKILLS.map((skill, i) => (
             <Reveal key={skill.name} delay={i * 0.06}>
               <SkillBar skill={skill} visible={skillsVisible} />
@@ -451,117 +455,206 @@ export default function Portfolio() {
         </div>
       </section>
 
-      {/* PROJECTS */}
-      <section id="projects" style={{ padding: "100px 40px", background: "#0b0b0d" }}>
+      {/* ── PROJECTS ── */}
+      <section id="projects" style={{ padding: isMobile ? "70px 20px" : "100px 40px", background: "#0b0b0d" }}>
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
           <Reveal>
             <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, letterSpacing: "0.25em", color: "#e8c547", textTransform: "uppercase", marginBottom: 12 }}>03 — Projects</div>
-            <h2 style={{ fontSize: "clamp(32px, 4vw, 52px)", fontWeight: 800, letterSpacing: "-0.03em", marginBottom: 60, color: "#e8e4d8" }}>
+            <h2 style={{ fontSize: "clamp(28px,5vw,52px)", fontWeight: 800, letterSpacing: "-0.03em", marginBottom: 40, color: "#e8e4d8" }}>
               Things I've <span style={{ color: "#5ec4a8", fontStyle: "italic" }}>built</span>
             </h2>
           </Reveal>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 16 }}>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fill, minmax(320px, 1fr))", gap: 16 }}>
             {PROJECTS.map((p, i) => (
               <Reveal key={p.id} delay={i * 0.1}>
-                <ProjectCard project={p} index={i} />
+                <ProjectCard project={p} />
               </Reveal>
             ))}
           </div>
         </div>
       </section>
 
-      {/* EXPERIENCE
-      <section id="experience" style={{ padding: "100px 40px", maxWidth: 1100, margin: "0 auto" }}>
-        <Reveal>
-          <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, letterSpacing: "0.25em", color: "#e8c547", textTransform: "uppercase", marginBottom: 12 }}>04 — Experience</div>
-          <h2 style={{ fontSize: "clamp(32px, 4vw, 52px)", fontWeight: 800, letterSpacing: "-0.03em", marginBottom: 60, color: "#e8e4d8" }}>
-            Where I've <span style={{ color: "#a78bfa", fontStyle: "italic" }}>worked</span>
-          </h2>
-        </Reveal>
-        <div style={{ maxWidth: 720 }}>
-          {EXPERIENCE.map((e, i) => (
-            <Reveal key={i} delay={i * 0.1}>
-              <div style={{
-                display: "grid", gridTemplateColumns: "150px 1fr", gap: 40,
-                padding: "36px 0",
-                borderBottom: i < EXPERIENCE.length - 1 ? "1px solid #1a1a1f" : "none",
-              }}>
-                <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: "#e8c547", letterSpacing: "0.1em", paddingTop: 4 }}>{e.year}</div>
-                <div>
-                  <div style={{ fontWeight: 700, fontSize: 20, marginBottom: 4, color: "#e8e4d8" }}>{e.role}</div>
-                  <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 12, color: "#5ec4a8", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 14 }}>{e.company}</div>
-                  <p style={{ fontSize: 14, color: "#666", lineHeight: 1.75 }}>{e.desc}</p>
-                </div>
-              </div>
-            </Reveal>
-          ))}
-        </div>
-      </section> */}
-
-      {/* CONTACT */}
-      <section id="contact" style={{ padding: "100px 40px", background: "#0b0b0d", textAlign: "center" }}>
+      {/* ── CONTACT ── */}
+      <section id="contact" style={{ padding: isMobile ? "70px 20px" : "100px 40px", background: "#0b0b0d", textAlign: "center" }}>
         <div style={{ maxWidth: 700, margin: "0 auto" }}>
           <Reveal>
             <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, letterSpacing: "0.25em", color: "#e8c547", textTransform: "uppercase", marginBottom: 12 }}>05 — Contact</div>
-            <h2 style={{ fontSize: "clamp(36px, 5vw, 64px)", fontWeight: 800, letterSpacing: "-0.03em", marginBottom: 20, color: "#e8e4d8" }}>
+            <h2 style={{ fontSize: "clamp(30px,6vw,64px)", fontWeight: 800, letterSpacing: "-0.03em", marginBottom: 20, color: "#e8e4d8" }}>
               Let's build<br /><span style={{ color: "#e8c547", fontStyle: "italic" }}>something great</span>
             </h2>
-            <p style={{ fontSize: 16, color: "#666", marginBottom: 48, lineHeight: 1.7 }}>
+            <p style={{ fontSize: isMobile ? 14 : 16, color: "#666", marginBottom: 40, lineHeight: 1.7 }}>
               Open to new opportunities, freelance projects, or just a good conversation about tech.
             </p>
           </Reveal>
           <Reveal delay={0.1}>
-            <a href="mailto:you@email.com" style={{
-              display: "inline-block",
-              fontSize: "clamp(18px, 3vw, 28px)",
-              fontWeight: 700,
-              color: "#e8e4d8",
-              textDecoration: "none",
-              borderBottom: "2px solid #222228",
-              paddingBottom: 6,
-              marginBottom: 52,
-              transition: "color 0.3s, border-color 0.3s",
-            }}
-              onMouseEnter={e => { e.currentTarget.style.color = "#e8c547"; e.currentTarget.style.borderColor = "#e8c547"; }}
-              onMouseLeave={e => { e.currentTarget.style.color = "#e8e4d8"; e.currentTarget.style.borderColor = "#222228"; }}
-            >ch.muniprasad06@gmail.com</a>
+            <EmailLink />
           </Reveal>
           <Reveal delay={0.2}>
-            <div style={{ display: "flex", justifyContent: "center", gap: 16, flexWrap: "wrap" }}>
-             {[
-  { name: "GitHub", url: "https://github.com/muniprasadchennapatnam" },
-  { name: "LinkedIn", url: "https://www.linkedin.com/in/ch-muni-prasad-51b8a8330/" },
-  
-].map(s => (
-  <a key={s.name} href={s.url} target="_blank" rel="noreferrer"
-    style={{
-      fontFamily: "'JetBrains Mono', monospace", fontSize: 11,
-      letterSpacing: "0.15em", textTransform: "uppercase",
-      color: "#555", textDecoration: "none",
-      border: "1px solid #222228", borderRadius: 8,
-      padding: "10px 20px",
-      transition: "all 0.3s",
-    }}
-    onMouseEnter={e => { e.currentTarget.style.color = "#e8c547"; e.currentTarget.style.borderColor = "#e8c547"; e.currentTarget.style.background = "#e8c54710"; }}
-    onMouseLeave={e => { e.currentTarget.style.color = "#555"; e.currentTarget.style.borderColor = "#222228"; e.currentTarget.style.background = "none"; }}
-  >{s.name} ↗</a>
-))}
-             
+            <div style={{ display: "flex", justifyContent: "center", gap: 12, flexWrap: "wrap", flexDirection: isSmall ? "column" : "row", alignItems: "center" }}>
+              {[
+                { name: "GitHub", url: "https://github.com/muniprasadchennapatnam" },
+                { name: "LinkedIn", url: "https://www.linkedin.com/in/ch-muni-prasad-51b8a8330/" },
+              ].map(s => (
+                <SocialLink key={s.name} name={s.name} url={s.url} fullWidth={isSmall} />
+              ))}
             </div>
           </Reveal>
         </div>
       </section>
 
-      {/* FOOTER */}
+      {/* ── FOOTER ── */}
       <footer style={{
-        padding: "28px 40px",
+        padding: isMobile ? "20px" : "28px 40px",
         borderTop: "1px solid #1a1a1f",
-        display: "flex", justifyContent: "space-between", alignItems: "center",
-        flexWrap: "wrap", gap: 12,
+        display: "flex",
+        justifyContent: isMobile ? "center" : "space-between",
+        alignItems: "center",
+        flexDirection: isMobile ? "column" : "row",
+        flexWrap: "wrap", gap: 8,
+        textAlign: "center",
       }}>
-        <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: "#333", letterSpacing: "0.08em" }}>© 2026 CHENNAPATNAM MUNIPRASAD — All rights reserved</span>
-        <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: "#333", letterSpacing: "0.08em", fontStyle: "italic" }}>Built with React ⚛️</span>
+        <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: "#333", letterSpacing: "0.08em" }}>© 2026 CHENNAPATNAM MUNIPRASAD — All rights reserved</span>
+        <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: "#333", letterSpacing: "0.08em", fontStyle: "italic" }}>Built with React ⚛️</span>
       </footer>
     </div>
+  );
+}
+
+// ── Sub-components ──
+
+function NavBtn({ label, onClick }) {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <button onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        background: hovered ? "#ffffff08" : "none", border: "none", cursor: "pointer",
+        fontFamily: "'JetBrains Mono', monospace", fontSize: 11,
+        letterSpacing: "0.12em", textTransform: "uppercase",
+        color: "#666", padding: "6px 14px", borderRadius: 6,
+        transition: "color 0.3s, background 0.3s",
+      }}
+    >{label}</button>
+  );
+}
+
+function HeroBtn({ children, onClick, primary, fullWidth }) {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <button onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        background: primary ? (hovered ? "#f0d060" : "#e8c547") : "none",
+        color: primary ? "#08080a" : (hovered ? "#e8c547" : "#888"),
+        border: primary ? "none" : `1px solid ${hovered ? "#e8c547" : "#222228"}`,
+        borderRadius: 8,
+        fontFamily: "'Syne', sans-serif", fontWeight: primary ? 700 : 600, fontSize: 13,
+        letterSpacing: "0.05em", padding: "13px 28px",
+        cursor: "pointer", transition: "all 0.3s",
+        transform: primary && hovered ? "translateY(-2px)" : "translateY(0)",
+        width: fullWidth ? "100%" : "auto",
+      }}
+    >{children}</button>
+  );
+}
+
+function AvatarCard({ isSmall }) {
+  const w = isSmall ? 200 : 300;
+  const h = isSmall ? 250 : 360;
+  return (
+    <div style={{ position: "relative" }}>
+      <div style={{
+        width: w, height: h,
+        background: "linear-gradient(145deg, #111113, #0d0d0f)",
+        border: "1px solid #222228", borderRadius: 20,
+        display: "flex", flexDirection: "column",
+        alignItems: "center", justifyContent: "center",
+        position: "relative", overflow: "hidden",
+        animation: "float 5s ease-in-out infinite",
+      }}>
+        <div style={{ position: "absolute", inset: 0, background: "radial-gradient(circle at 50% 30%, rgba(232,197,71,0.08), transparent 60%)" }} />
+        <div style={{
+          width: isSmall ? 70 : 100, height: isSmall ? 70 : 100, borderRadius: "50%",
+          background: "linear-gradient(135deg, #e8c547, #f0d060)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          fontSize: isSmall ? 26 : 40, fontWeight: 800, color: "#08080a",
+          fontFamily: "'Syne', sans-serif",
+          marginBottom: isSmall ? 12 : 20, position: "relative", zIndex: 1,
+        }}>CM</div>
+        <div style={{ fontWeight: 700, fontSize: isSmall ? 12 : 16, color: "#e8e4d8", zIndex: 1, textAlign: "center", padding: "0 12px" }}>CHENNAPATNAM MUNIPRASAD</div>
+        <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: "#e8c547", letterSpacing: "0.12em", marginTop: 6, zIndex: 1 }}>MERN STACK DEV</div>
+        <div style={{ display: "flex", gap: isSmall ? 8 : 12, marginTop: isSmall ? 16 : 24, zIndex: 1 }}>
+          {["⚛️", "🟢", "🍃", "🐍"].map((icon, i) => (
+            <div key={i} style={{
+              width: isSmall ? 28 : 36, height: isSmall ? 28 : 36, borderRadius: 8,
+              background: "#0a0a0c", border: "1px solid #222228",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: isSmall ? 12 : 16,
+            }}>{icon}</div>
+          ))}
+        </div>
+      </div>
+      {/* Floating stat cards — hidden on small phones */}
+      {!isSmall && (
+        <>
+          <div style={{ position: "absolute", top: 30, right: -70, background: "#111113", border: "1px solid #e8c54740", borderRadius: 12, padding: "12px 16px", minWidth: 80, animation: "float 4s ease-in-out infinite" }}>
+            <div style={{ fontWeight: 800, fontSize: 22, color: "#e8c547", fontFamily: "'Syne', sans-serif" }}>3+</div>
+            <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: "#555", letterSpacing: "0.1em", textTransform: "uppercase" }}>Projects</div>
+          </div>
+          <div style={{ position: "absolute", bottom: 60, left: -70, background: "#111113", border: "1px solid #5ec4a840", borderRadius: 12, padding: "12px 16px", minWidth: 80, animation: "float 4s 0.5s ease-in-out infinite" }}>
+            <div style={{ fontWeight: 800, fontSize: 22, color: "#5ec4a8", fontFamily: "'Syne', sans-serif" }}>MERN</div>
+            <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: "#555", letterSpacing: "0.1em", textTransform: "uppercase" }}>Stack</div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+function EmailLink() {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <a href="mailto:ch.muniprasad06@gmail.com"
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        display: "inline-block",
+        fontSize: "clamp(14px, 3.5vw, 28px)",
+        fontWeight: 700,
+        color: hovered ? "#e8c547" : "#e8e4d8",
+        textDecoration: "none",
+        borderBottom: `2px solid ${hovered ? "#e8c547" : "#222228"}`,
+        paddingBottom: 6,
+        marginBottom: 48,
+        transition: "color 0.3s, border-color 0.3s",
+        wordBreak: "break-all",
+      }}
+    >ch.muniprasad06@gmail.com</a>
+  );
+}
+
+function SocialLink({ name, url, fullWidth }) {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <a href={url} target="_blank" rel="noreferrer"
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        fontFamily: "'JetBrains Mono', monospace", fontSize: 11,
+        letterSpacing: "0.15em", textTransform: "uppercase",
+        color: hovered ? "#e8c547" : "#555",
+        textDecoration: "none",
+        border: `1px solid ${hovered ? "#e8c547" : "#222228"}`,
+        borderRadius: 8, padding: "10px 20px",
+        background: hovered ? "#e8c54710" : "none",
+        transition: "all 0.3s",
+        width: fullWidth ? "100%" : "auto",
+        maxWidth: fullWidth ? 220 : "none",
+        textAlign: "center",
+        display: "inline-block",
+      }}
+    >{name} ↗</a>
   );
 }
